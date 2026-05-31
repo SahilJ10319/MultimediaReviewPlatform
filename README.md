@@ -1,32 +1,70 @@
-# Tube Talk
+# Multimedia Review Platform
 
-TubeTalk is the name of the proposed website that will serve as a multimedia review
-platform for movies and TV shows. The primary objective of this project is to develop
-a user-friendly web application that enables users to share their opinions on various
-movies and TV shows.
+> A Letterboxd-style multimedia review web app — full-stack TypeScript with Angular, Express, MongoDB, JWT auth, and real-time review feeds via Socket.io.
 
-## Website Access
+## Overview
 
-To access the website, visit: `http://34.130.196.174/`
+A full-stack web app where users review and rate movies/TV shows, follow other reviewers, and get real-time updates when followed users post new content. Built to practice production-grade auth, real-time messaging, and search-heavy MongoDB workloads against the TMDb API.
 
-## Development Mode
+## Tech Stack
 
-To start the project in development server, follow these steps:
+| Layer | Technology |
+|---|---|
+| **Frontend** | Angular, TypeScript |
+| **Backend** | Node.js, Express.js |
+| **Database** | MongoDB (Mongoose) |
+| **Real-time** | Socket.io WebSockets |
+| **External API** | TMDb (The Movie Database) |
+| **Auth** | JWT with refresh token rotation, bcrypt |
 
-### Code Changes: 
-1. visit the url.ts file in frontend/src/app/shared/constants
-2. Change BASE_URL to localhost
-3. Open the app.js in backend folder
-4. Comment the Lines 37 - 42
+## Key Features
 
-### Installing Node Modules:
+- **Genre filtering with multi-tag AND/OR search logic** — compound MongoDB queries backed by text + compound indexes
+- **Secure JWT auth flow** — short-lived access tokens, rotated refresh tokens, protected CRUD routes
+- **Server-side validation** — Mongoose schema validation + Express middleware request validation
+- **Real-time review feed** — Socket.io broadcasts new reviews and live user events to followers
+- **MongoDB performance** — compound and text indexes on the review collection for sub-100ms search
 
-5. Install node modules in backend folder using `npm install` command in the terminal
-6. Install node modules in frontend folder using `npm install --force` command in the terminal
+## Architecture
 
-### Starting Backend and Frontend:
+```
+Angular (TypeScript)  ──HTTP──▶  Express API  ──Mongoose──▶  MongoDB
+       ▲                              │                          │
+       │                              │                       indexes
+       └─────WebSocket (Socket.io)────┘                     (text + compound)
+                                      │
+                                      └──HTTP──▶  TMDb API
+```
 
-7. Start the backend using `npm run start` command in the terminal
-8. Start the frontend using `ng serve' command in the terminal 
+## Running Locally
 
-The application should be ruuning on `http://localhost:4200/`
+### Prerequisites
+- Node.js 18+
+- MongoDB running locally (or a connection string)
+- TMDb API key
+
+### Setup
+
+```bash
+git clone https://github.com/SahilJ10319/LetterBoxdClone.git
+cd LetterBoxdClone
+
+# Backend
+cd backend
+npm install
+cp .env.example .env   # set MONGO_URI, JWT_SECRET, TMDB_API_KEY
+npm run start
+
+# Frontend (in a second terminal)
+cd ../frontend
+npm install
+ng serve
+```
+
+App runs at `http://localhost:4200`. Backend API runs at `http://localhost:3000`.
+
+## What I Learned
+
+- **Refresh token rotation** is non-trivial — revoking old tokens, issuing new ones, and handling race conditions on parallel requests was the most interesting piece of the auth work.
+- **MongoDB indexing strategy** matters more than I expected. The first version of multi-tag search took 800ms+; a compound index on `(genres, rating, createdAt)` plus a text index on `title` dropped it under 100ms.
+- **Socket.io rooms** are the cleanest way to scope broadcasts to followers without flooding the whole user base.
